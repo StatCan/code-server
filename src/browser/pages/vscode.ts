@@ -112,6 +112,13 @@ export function setBodyBackgroundToThemeBackgroundColor(document: Document, loca
     throw new Error(`${errorMsgPrefix} Could not set body background to theme background color. Could not find colorThemeData in localStorage.`)
   }
 
+  // TODO parse colorThemeData
+  // which may need try/catch
+  // or not since we are catching when we call the function 
+  // TODO get editor.background
+  // TODO set it to style.background
+  // also read about when to set background vs backgroundColor
+
   return null
 }
 
@@ -119,4 +126,5 @@ try {
   document.body.style.background = JSON.parse(localStorage.getItem("colorThemeData")!).colorMap["editor.background"]
 } catch (error) {
   // Oh well.
+  // TODO@jsjoeio add better logging here
 }
