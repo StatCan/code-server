@@ -95,6 +95,26 @@ try {
   console.error(error)
 }
 
+export function setBodyBackgroundToThemeBackgroundColor(document: Document, localStorage: Storage) {
+  const errorMsgPrefix = "[vscode]"
+
+  if (!document) {
+    throw new Error(`${errorMsgPrefix} Could not set body background to theme background color. Document is undefined.`)
+  }
+
+  if (!localStorage) {
+    throw new Error(`${errorMsgPrefix} Could not set body background to theme background color. localStorage is undefined.`)
+  }
+
+  const colorThemeData = localStorage.getItem("colorThemeData")
+
+  if (!colorThemeData) {
+    throw new Error(`${errorMsgPrefix} Could not set body background to theme background color. Could not find colorThemeData in localStorage.`)
+  }
+
+  return null
+}
+
 try {
   document.body.style.background = JSON.parse(localStorage.getItem("colorThemeData")!).colorMap["editor.background"]
 } catch (error) {
