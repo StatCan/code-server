@@ -4,16 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as nls from 'vs/nls';
-import { isWindows, isWeb } from 'vs/base/common/platform';
+import { isWindows/*, isWeb*/ } from 'vs/base/common/platform';
 import * as extpath from 'vs/base/common/extpath';
 import { extname, basename } from 'vs/base/common/path';
 import * as resources from 'vs/base/common/resources';
 import { URI } from 'vs/base/common/uri';
 import { toErrorMessage } from 'vs/base/common/errorMessage';
 import { Action } from 'vs/base/common/actions';
-import { DisposableStore, dispose, IDisposable, toDisposable } from 'vs/base/common/lifecycle';
+import { /*DisposableStore, */dispose, IDisposable/*, toDisposable*/ } from 'vs/base/common/lifecycle';
 import { VIEWLET_ID, IFilesConfiguration, VIEW_ID } from 'vs/workbench/contrib/files/common/files';
-import { ByteSize, IFileService, IFileStatWithMetadata } from 'vs/platform/files/common/files';
+import { /*ByteSize, */IFileService, /*IFileStatWithMetadata*/ } from 'vs/platform/files/common/files';
 import { EditorResourceAccessor, SideBySideEditor } from 'vs/workbench/common/editor';
 import { IQuickInputService, ItemActivation } from 'vs/platform/quickinput/common/quickInput';
 import { IViewletService } from 'vs/workbench/services/viewlet/browser/viewlet';
@@ -28,8 +28,8 @@ import { IModeService } from 'vs/editor/common/services/modeService';
 import { IModelService } from 'vs/editor/common/services/modelService';
 import { ICommandService, CommandsRegistry } from 'vs/platform/commands/common/commands';
 import { RawContextKey } from 'vs/platform/contextkey/common/contextkey';
-import { FileAccess, Schemas } from 'vs/base/common/network';
-import { IDialogService, IConfirmationResult, getFileNamesMessage, IFileDialogService } from 'vs/platform/dialogs/common/dialogs';
+import { /*FileAccess, */Schemas } from 'vs/base/common/network';
+import { IDialogService, IConfirmationResult, getFileNamesMessage/*, IFileDialogService*/ } from 'vs/platform/dialogs/common/dialogs';
 import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
 import { IEditorService } from 'vs/workbench/services/editor/common/editorService';
 import { Constants } from 'vs/base/common/uint';
@@ -37,24 +37,24 @@ import { CLOSE_EDITORS_AND_GROUP_COMMAND_ID } from 'vs/workbench/browser/parts/e
 import { coalesce } from 'vs/base/common/arrays';
 import { ExplorerItem, NewExplorerItem } from 'vs/workbench/contrib/files/common/explorerModel';
 import { getErrorMessage } from 'vs/base/common/errors';
-import { WebFileSystemAccess, triggerDownload } from 'vs/base/browser/dom';
-import { mnemonicButtonLabel } from 'vs/base/common/labels';
+// import { WebFileSystemAccess, triggerDownload } from 'vs/base/browser/dom';
+// import { mnemonicButtonLabel } from 'vs/base/common/labels';
 import { IFilesConfigurationService } from 'vs/workbench/services/filesConfiguration/common/filesConfigurationService';
 import { IWorkingCopyService } from 'vs/workbench/services/workingCopy/common/workingCopyService';
 import { IWorkingCopy } from 'vs/workbench/services/workingCopy/common/workingCopy';
-import { RunOnceWorker, sequence, timeout } from 'vs/base/common/async';
+import { /*RunOnceWorker, sequence, */timeout } from 'vs/base/common/async';
 import { IWorkingCopyFileService } from 'vs/workbench/services/workingCopy/common/workingCopyFileService';
 import { once } from 'vs/base/common/functional';
 import { Codicon } from 'vs/base/common/codicons';
 import { IViewsService } from 'vs/workbench/common/views';
 import { trim, rtrim } from 'vs/base/common/strings';
-import { IProgressService, IProgressStep, ProgressLocation } from 'vs/platform/progress/common/progress';
-import { CancellationTokenSource } from 'vs/base/common/cancellation';
-import { ILogService } from 'vs/platform/log/common/log';
+// import { IProgressService, IProgressStep, ProgressLocation } from 'vs/platform/progress/common/progress';
+// import { CancellationTokenSource } from 'vs/base/common/cancellation';
+// import { ILogService } from 'vs/platform/log/common/log';
 import { IUriIdentityService } from 'vs/workbench/services/uriIdentity/common/uriIdentity';
 import { ResourceFileEdit } from 'vs/editor/browser/services/bulkEditService';
 import { IExplorerService } from 'vs/workbench/contrib/files/browser/files';
-import { listenStream } from 'vs/base/common/stream';
+// import { listenStream } from 'vs/base/common/stream';
 import { EditorOverride } from 'vs/platform/editor/common/editor';
 import { ContributedEditorPriority, IEditorOverrideService } from 'vs/workbench/services/editor/common/editorOverrideService';
 
@@ -965,6 +965,8 @@ export const cutFileHandler = async (accessor: ServicesAccessor) => {
 	}
 };
 
+/*
+//Remove download command id
 export const DOWNLOAD_COMMAND_ID = 'explorer.download';
 const downloadFileHandler = async (accessor: ServicesAccessor) => {
 	const logService = accessor.get(ILogService);
@@ -1205,7 +1207,7 @@ CommandsRegistry.registerCommand({
 	id: DOWNLOAD_COMMAND_ID,
 	handler: downloadFileHandler
 });
-
+*/
 export const pasteFileHandler = async (accessor: ServicesAccessor) => {
 	const clipboardService = accessor.get(IClipboardService);
 	const explorerService = accessor.get(IExplorerService);

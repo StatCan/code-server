@@ -5,7 +5,7 @@
 
 import * as nls from 'vs/nls';
 import { Registry } from 'vs/platform/registry/common/platform';
-import { ToggleAutoSaveAction, FocusFilesExplorer, GlobalCompareResourcesAction, ShowActiveFileInExplorer, CompareWithClipboardAction, NEW_FILE_COMMAND_ID, NEW_FILE_LABEL, NEW_FOLDER_COMMAND_ID, NEW_FOLDER_LABEL, TRIGGER_RENAME_LABEL, MOVE_FILE_TO_TRASH_LABEL, COPY_FILE_LABEL, PASTE_FILE_LABEL, FileCopiedContext, renameHandler, moveFileToTrashHandler, copyFileHandler, pasteFileHandler, deleteFileHandler, cutFileHandler, DOWNLOAD_COMMAND_ID, openFilePreserveFocusHandler, DOWNLOAD_LABEL, ShowOpenedFileInNewWindow } from 'vs/workbench/contrib/files/browser/fileActions';
+import { ToggleAutoSaveAction, FocusFilesExplorer, GlobalCompareResourcesAction, ShowActiveFileInExplorer, CompareWithClipboardAction, NEW_FILE_COMMAND_ID, NEW_FILE_LABEL, NEW_FOLDER_COMMAND_ID, NEW_FOLDER_LABEL, TRIGGER_RENAME_LABEL, MOVE_FILE_TO_TRASH_LABEL, COPY_FILE_LABEL, PASTE_FILE_LABEL, FileCopiedContext, renameHandler, moveFileToTrashHandler, copyFileHandler, pasteFileHandler, deleteFileHandler, cutFileHandler, openFilePreserveFocusHandler, ShowOpenedFileInNewWindow } from 'vs/workbench/contrib/files/browser/fileActions';
 import { revertLocalChangesCommand, acceptLocalChangesCommand, CONFLICT_RESOLUTION_CONTEXT } from 'vs/workbench/contrib/files/browser/editors/textFileSaveErrorHandler';
 import { SyncActionDescriptor, MenuId, MenuRegistry, ILocalizedString } from 'vs/platform/actions/common/actions';
 import { IWorkbenchActionRegistry, Extensions as ActionExtensions } from 'vs/workbench/common/actions';
@@ -22,8 +22,8 @@ import { AutoSaveAfterShortDelayContext } from 'vs/workbench/services/filesConfi
 import { ResourceContextKey } from 'vs/workbench/common/resources';
 import { WorkbenchListDoubleSelection } from 'vs/platform/list/browser/listService';
 import { Schemas } from 'vs/base/common/network';
-import { DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, HasWebFileSystemAccess, WorkspaceFolderCountContext } from 'vs/workbench/browser/contextkeys';
-import { IsWebContext } from 'vs/platform/contextkey/common/contextkeys';
+import { DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, /*HasWebFileSystemAccess,*/ WorkspaceFolderCountContext } from 'vs/workbench/browser/contextkeys';
+// import { IsWebContext } from 'vs/platform/contextkey/common/contextkeys';
 import { ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
 import { OpenFileFolderAction, OpenFileAction, OpenFolderAction, OpenWorkspaceAction } from 'vs/workbench/browser/actions/workspaceActions';
 import { ActiveEditorContext } from 'vs/workbench/common/editor';
@@ -222,7 +222,8 @@ appendToCommandPalette(COMPARE_WITH_SAVED_COMMAND_ID, { value: nls.localize('com
 appendToCommandPalette(SAVE_FILE_AS_COMMAND_ID, { value: SAVE_FILE_AS_LABEL, original: 'Save As...' }, category);
 appendToCommandPalette(NEW_FILE_COMMAND_ID, { value: NEW_FILE_LABEL, original: 'New File' }, category, WorkspaceFolderCountContext.notEqualsTo('0'));
 appendToCommandPalette(NEW_FOLDER_COMMAND_ID, { value: NEW_FOLDER_LABEL, original: 'New Folder' }, category, WorkspaceFolderCountContext.notEqualsTo('0'));
-appendToCommandPalette(DOWNLOAD_COMMAND_ID, { value: DOWNLOAD_LABEL, original: 'Download...' }, category, ContextKeyExpr.and(ResourceContextKey.Scheme.notEqualsTo(Schemas.file)));
+// Remove download Command Id
+// appendToCommandPalette(DOWNLOAD_COMMAND_ID, { value: DOWNLOAD_LABEL, original: 'Download...' }, category, ContextKeyExpr.and(ResourceContextKey.Scheme.notEqualsTo(Schemas.file)));
 appendToCommandPalette(NEW_UNTITLED_FILE_COMMAND_ID, { value: NEW_UNTITLED_FILE_LABEL, original: 'New Untitled File' }, category);
 
 // Menu registration - open editors
@@ -484,6 +485,8 @@ MenuRegistry.appendMenuItem(MenuId.ExplorerContext, {
 	when: ExplorerFolderContext
 });
 
+/*
+// Remove Download command Id
 MenuRegistry.appendMenuItem(MenuId.ExplorerContext, ({
 	group: '5_cutcopypaste',
 	order: 30,
@@ -500,6 +503,7 @@ MenuRegistry.appendMenuItem(MenuId.ExplorerContext, ({
 		ContextKeyExpr.and(IsWebContext, HasWebFileSystemAccess)
 	)
 }));
+*/
 
 MenuRegistry.appendMenuItem(MenuId.ExplorerContext, {
 	group: '6_copypath',
