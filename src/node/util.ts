@@ -10,6 +10,7 @@ import * as path from "path"
 import safeCompare from "safe-compare"
 import * as util from "util"
 import xdgBasedir from "xdg-basedir"
+import { getFirstString } from "../common/util"
 
 export interface Paths {
   data: string
@@ -19,7 +20,7 @@ export interface Paths {
 
 // From https://github.com/chalk/ansi-regex
 const pattern = [
-  "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
+  "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
   "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))",
 ].join("|")
 const re = new RegExp(pattern, "g")
@@ -459,8 +460,9 @@ enum CharCode {
  */
 export function pathToFsPath(path: string, keepDriveLetterCasing = false): string {
   const isWindows = process.platform === "win32"
-  const uri = { authority: undefined, path, scheme: "file" }
+  const uri = { authority: undefined, path: getFirstString(path) || "", scheme: "file" }
   let value: string
+
   if (uri.authority && uri.path.length > 1 && uri.scheme === "file") {
     // unc path: file://shares/c$/far/boo
     value = `//${uri.authority}${uri.path}`
@@ -521,4 +523,13 @@ export function escapeHtml(unsafe: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;")
+}
+
+/**
+ * A helper function which returns a boolean indicating whether
+ * the given error is a NodeJS.ErrnoException by checking if
+ * it has a .code property.
+ */
+export function isNodeJSErrnoException(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && (error as NodeJS.ErrnoException).code !== undefined
 }

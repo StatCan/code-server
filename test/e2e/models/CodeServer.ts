@@ -12,12 +12,22 @@ interface CodeServerProcess {
   address: string
 }
 
+class CancelToken {
+  private _canceled = false
+  public canceled(): boolean {
+    return this._canceled
+  }
+  public cancel(): void {
+    this._canceled = true
+  }
+}
+
 /**
  * Class for spawning and managing code-server.
  */
 export class CodeServer {
   private process: Promise<CodeServerProcess> | undefined
-  private readonly logger: Logger
+  public readonly logger: Logger
   private closed = false
 
   constructor(name: string) {
@@ -167,6 +177,8 @@ export class CodeServerPage {
    * Reload until both checks pass
    */
   async reloadUntilEditorIsReady() {
+    this.codeServer.logger.debug("Waiting for editor to be ready...")
+
     const editorIsVisible = await this.isEditorVisible()
     const editorIsConnected = await this.isConnected()
     let reloadCount = 0
@@ -184,30 +196,41 @@ export class CodeServerPage {
       await this.page.waitForTimeout(1000)
       reloadCount += 1
       if ((await this.isEditorVisible()) && (await this.isConnected())) {
-        logger.debug(`editor became ready after ${reloadCount} reloads`)
+        this.codeServer.logger.debug(`editor became ready after ${reloadCount} reloads`)
         break
       }
       await this.page.reload()
     }
+
+    this.codeServer.logger.debug("Editor is ready!")
   }
 
   /**
    * Checks if the editor is visible
    */
   async isEditorVisible() {
+    this.codeServer.logger.debug("Waiting for editor to be visible...")
     // Make sure the editor actually loaded
     await this.page.waitForSelector(this.editorSelector)
-    return await this.page.isVisible(this.editorSelector)
+    const visible = await this.page.isVisible(this.editorSelector)
+
+    this.codeServer.logger.debug(`Editor is ${visible ? "not visible" : "visible"}!`)
+
+    return visible
   }
 
   /**
    * Checks if the editor is visible
    */
   async isConnected() {
+    this.codeServer.logger.debug("Waiting for network idle...")
+
     await this.page.waitForLoadState("networkidle")
 
     const host = new URL(await this.codeServer.address()).host
-    const hostSelector = `[title="Editing on ${host}"]`
+    // NOTE: This seems to be pretty brittle between version changes.
+    const hostSelector = `[aria-label="remote  ${host}"]`
+    this.codeServer.logger.debug(`Waiting selector: ${hostSelector}`)
     await this.page.waitForSelector(hostSelector)
 
     return await this.page.isVisible(hostSelector)
@@ -223,26 +246,77 @@ export class CodeServerPage {
    * visible already.
    */
   async focusTerminal() {
-    // Click [aria-label="Application Menu"] div[role="none"]
-    await this.page.click('[aria-label="Application Menu"] div[role="none"]')
-
-    // Click text=View
-    await this.page.hover("text=View")
-    await this.page.click("text=View")
-
-    // Click text=Command Palette
-    await this.page.hover("text=Command Palette")
-    await this.page.click("text=Command Palette")
-
-    // Type Terminal: Focus Terminal
-    await this.page.keyboard.type("Terminal: Focus Terminal")
-
-    // Click Terminal: Focus Terminal
-    await this.page.hover("text=Terminal: Focus Terminal")
-    await this.page.click("text=Terminal: Focus Terminal")
+    await this.executeCommandViaMenus("Terminal: Focus Terminal")
 
     // Wait for terminal textarea to show up
     await this.page.waitForSelector("textarea.xterm-helper-textarea")
+  }
+
+  /**
+   * Navigate to the command palette via menus then execute a command by typing
+   * it then clicking the match from the results.
+   */
+  async executeCommandViaMenus(command: string) {
+    await this.navigateMenus(["View", "Command Palette"])
+
+    await this.page.keyboard.type(command)
+
+    await this.page.hover(`text=${command}`)
+    await this.page.click(`text=${command}`)
+  }
+
+  /**
+   * Navigate through the specified set of menus. If it fails it will keep
+   * trying.
+   */
+  async navigateMenus(menus: string[]) {
+    const navigate = async (cancelToken: CancelToken) => {
+      const steps: Array<() => Promise<unknown>> = [() => this.page.waitForSelector(`${menuSelector}:focus-within`)]
+      for (const menu of menus) {
+        // Normally these will wait for the item to be visible and then execute
+        // the action. The problem is that if the menu closes these will still
+        // be waiting and continue to execute once the menu is visible again,
+        // potentially conflicting with the new set of navigations (for example
+        // if the old promise clicks logout before the new one can). By
+        // splitting them into two steps each we can cancel before running the
+        // action.
+        steps.push(() => this.page.hover(`text=${menu}`, { trial: true }))
+        steps.push(() => this.page.hover(`text=${menu}`, { force: true }))
+        steps.push(() => this.page.click(`text=${menu}`, { trial: true }))
+        steps.push(() => this.page.click(`text=${menu}`, { force: true }))
+      }
+      for (const step of steps) {
+        await step()
+        if (cancelToken.canceled()) {
+          this.codeServer.logger.debug("menu navigation canceled")
+          return false
+        }
+      }
+      return true
+    }
+
+    const menuSelector = '[aria-label="Application Menu"]'
+    const open = async () => {
+      await this.page.click(menuSelector)
+      await this.page.waitForSelector(`${menuSelector}:not(:focus-within)`)
+      return false
+    }
+
+    // TODO: Starting in 1.57 something closes the menu after opening it if we
+    // open it too soon. To counter that we'll watch for when the menu loses
+    // focus and when/if it does we'll try again.
+    // I tried using the classic menu but it doesn't show up at all for some
+    // reason. I also tried toggle but the menu disappears after toggling.
+    let retryCount = 0
+    let cancelToken = new CancelToken()
+    while (!(await Promise.race([open(), navigate(cancelToken)]))) {
+      this.codeServer.logger.debug("menu was closed, retrying")
+      ++retryCount
+      cancelToken.cancel()
+      cancelToken = new CancelToken()
+    }
+
+    this.codeServer.logger.debug(`menu navigation retries: ${retryCount}`)
   }
 
   /**

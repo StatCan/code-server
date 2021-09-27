@@ -12,10 +12,11 @@ KEEP_MODULES="${KEEP_MODULES-0}"
 
 main() {
   cd "$(dirname "${0}")/../.."
+
   source ./ci/lib.sh
 
-  VSCODE_SRC_PATH="lib/vscode"
-  VSCODE_OUT_PATH="$RELEASE_PATH/lib/vscode"
+  VSCODE_SRC_PATH="vendor/modules/code-oss-dev"
+  VSCODE_OUT_PATH="$RELEASE_PATH/vendor/modules/code-oss-dev"
 
   mkdir -p "$RELEASE_PATH"
 
@@ -24,7 +25,7 @@ main() {
 
   rsync ./docs/README.md "$RELEASE_PATH"
   rsync LICENSE.txt "$RELEASE_PATH"
-  rsync ./lib/vscode/ThirdPartyNotices.txt "$RELEASE_PATH"
+  rsync ./vendor/modules/code-oss-dev/ThirdPartyNotices.txt "$RELEASE_PATH"
 }
 
 bundle_code_server() {
@@ -48,7 +49,7 @@ bundle_code_server() {
   {
     "commit": "$(git rev-parse HEAD)",
     "scripts": {
-      "postinstall": "./postinstall.sh"
+      "postinstall": "sh ./postinstall.sh"
     }
   }
 EOF
@@ -82,10 +83,12 @@ bundle_vscode() {
   rsync "$VSCODE_SRC_PATH/resources/linux/code.png" "$VSCODE_OUT_PATH/resources/linux/code.png"
   rsync "$VSCODE_SRC_PATH/resources/web/callback.html" "$VSCODE_OUT_PATH/resources/web/callback.html"
 
-  # Adds the commit and date to product.json
+  # Add the commit and date and enable telemetry. This just makes telemetry
+  # available; telemetry can still be disabled by flag or setting.
   jq --slurp '.[0] * .[1]' "$VSCODE_SRC_PATH/product.json" <(
     cat << EOF
   {
+    "enableTelemetry": true,
     "commit": "$(git rev-parse HEAD)",
     "date": $(jq -n 'now | todate')
   }
