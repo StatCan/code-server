@@ -92,6 +92,7 @@
     "httpolyglot": "^0.1.2",
     "js-yaml": "^4.0.0",
     "limiter": "^1.1.5",
+    "pac-resolver": "5.0.0",
     "pem": "^1.14.2",
     "proxy-agent": "^4.0.0",
     "proxy-from-env": "^1.1.0",
